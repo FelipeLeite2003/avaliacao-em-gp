@@ -1,0 +1,170 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define MAX_HOSPEDES 100
+#define MAX_NOME 100
+#define MAX_QUARTOS 50
+
+typedef struct {
+    char nome[MAX_NOME];
+    int quarto;
+} Hospede;
+
+Hospede hospedes[MAX_HOSPEDES];
+int contador_hospedes = 0;
+
+void inserirHospede() {
+    if (contador_hospedes >= MAX_HOSPEDES) {
+        printf("Capacidade máxima atingida.\n");
+        return;
+    }
+    printf("Digite o número do quarto (1 a %d): ", MAX_QUARTOS);
+    scanf("%d%*c", &hospedes[contador_hospedes].quarto);  // %*c para consumir o newline
+    if (hospedes[contador_hospedes].quarto < 1 || hospedes[contador_hospedes].quarto > MAX_QUARTOS) {
+        printf("Número de quarto inválido!\n");
+        return;
+    }
+    printf("Digite o nome do hóspede: ");
+    fgets(hospedes[contador_hospedes].nome, MAX_NOME, stdin);
+    hospedes[contador_hospedes].nome[strcspn(hospedes[contador_hospedes].nome, "\n")] = 0;  // Remove newline
+    contador_hospedes++;
+    printf("Hóspede adicionado com sucesso!\n");
+}
+
+void listarHospedes() {
+    for (int i = 0; i < contador_hospedes; i++) {
+        printf("Quarto %d: %s\n", hospedes[i].quarto, hospedes[i].nome);
+    }
+}
+
+void buscarHospede() {
+    char nome[MAX_NOME];
+    printf("Digite o nome do hóspede para buscar: ");
+    fgets(nome, MAX_NOME, stdin);
+    nome[strcspn(nome, "\n")] = 0; // Remove newline
+    for (int i = 0; i < contador_hospedes; i++) {
+        if (strcmp(hospedes[i].nome, nome) == 0) {
+            printf("Hóspede %s está no quarto %d\n", nome, hospedes[i].quarto);
+            return;
+        }
+    }
+    printf("Hóspede não encontrado.\n");
+}
+
+void editarHospede() {
+    char nome[MAX_NOME];
+    printf("Digite o nome do hóspede para editar: ");
+    fgets(nome, MAX_NOME, stdin);
+    nome[strcspn(nome, "\n")] = 0; // Remove newline
+    for (int i = 0; i < contador_hospedes; i++) {
+        if (strcmp(hospedes[i].nome, nome) == 0) {
+            printf("Digite o novo nome para o hóspede: ");
+            fgets(hospedes[i].nome, MAX_NOME, stdin);
+            hospedes[i].nome[strcspn(hospedes[i].nome, "\n")] = 0; // Remove newline
+            printf("Nome atualizado com sucesso!\n");
+            return;
+        }
+    }
+    printf("Hóspede não encontrado.\n");
+}
+
+void liberarQuarto() {
+    int quarto;
+    printf("Digite o número do quarto para liberar: ");
+    scanf("%d%*c", &quarto);  // %*c para consumir o newline
+    int found = 0;
+    for (int i = 0; i < contador_hospedes; i++) {
+        if (hospedes[i].quarto == quarto) {
+            for (int j = i; j < contador_hospedes - 1; j++) {
+                hospedes[j] = hospedes[j + 1];
+            }
+            contador_hospedes--;
+            i--; // Ajuste do índice após a remoção
+            found = 1;
+        }
+    }
+    if (found)
+        printf("Quarto %d liberado.\n", quarto);
+    else
+        printf("Quarto não encontrado.\n");
+}
+
+void mostrarQuartosVazios() {
+    int ocupados[MAX_QUARTOS + 1] = {0};
+    for (int i = 0; i <contador_hospedes; i++) {
+        ocupados[hospedes[i].quarto] = 1;
+    }
+    printf("Quartos vazios:\n");
+    int vazios = 0;
+    for (int i = 1; i <= MAX_QUARTOS; i++) {
+        if (!ocupados[i]) {
+            printf("Quarto %d\n", i);
+            vazios++;
+        }
+    }
+    if (vazios == 0) {
+        printf("Não há quartos vazios.\n");
+    }
+}
+
+void salvarHospedes() {
+    FILE *file = fopen("hospedes.txt", "w");
+    if (file == NULL) {
+        printf("Erro ao abrir arquivo!\n");
+        return;
+    }
+    for (int i = 0; i < contador_hospedes; i++) {
+        fprintf(file, "Quarto %d: %s\n", hospedes[i].quarto, hospedes[i].nome);
+    }
+    fclose(file);
+    printf("Dados salvos com sucesso!\n");
+}
+
+int main() {
+    int opcao;
+    do {
+        printf("\nMenu de Opções:\n");
+        printf("1. Inserir Hóspede\n");
+        printf("2. Listar Hóspedes\n");
+        printf("3. Buscar Hóspede\n");
+        printf("4. Editar Hóspede\n");
+        printf("5. Liberar Quarto\n");
+        printf("6. Mostrar Quartos Vazios\n");
+        printf("7. Salvar Hospedes em Arquivo\n");
+        printf("8. Sair\n");
+        printf("Escolha uma opção: ");
+        scanf("%d%*c", &opcao);  // %*c para consumir o newline após o número
+
+        switch(opcao) {
+            case 1:
+                inserirHospede();
+                break;
+            case 2:
+                listarHospedes();
+                break;
+            case 3:
+                buscarHospede();
+                break;
+            case 4:
+                editarHospede();
+                break;
+            case 5:
+                liberarQuarto();
+                break;
+            case 6:
+                mostrarQuartosVazios();
+                break;
+            case 7:
+                salvarHospedes();
+                break;
+            case 8:
+                printf("Saindo...\n");
+                break;
+            default:
+                printf("Opção inválida.\n");
+        }
+    } while (opcao != 8);
+
+    return 0;
+}
